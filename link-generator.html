@@ -7,312 +7,96 @@
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --bg: #0f0f11;
-      --surface: #1a1a1f;
-      --surface2: #232329;
-      --border: #2e2e36;
-      --accent: #c9f542;
-      --accent-dim: #a8cc2a;
-      --text: #f0f0f0;
-      --text-muted: #7a7a8a;
-      --danger: #ff5c5c;
-      --radius: 14px;
+      --bg: #0f0f11; --surface: #1a1a1f; --surface2: #232329;
+      --border: #2e2e36; --accent: #c9f542; --accent-dim: #a8cc2a;
+      --text: #f0f0f0; --text-muted: #7a7a8a; --danger: #ff5c5c; --radius: 14px;
     }
-
-    body {
-      font-family: 'Sora', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    body { font-family: 'Sora', sans-serif; background: var(--bg); color: var(--text);
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
       padding: 24px;
       background-image:
         radial-gradient(ellipse 60% 50% at 80% 10%, rgba(201,245,66,0.07) 0%, transparent 60%),
-        radial-gradient(ellipse 40% 40% at 10% 90%, rgba(201,245,66,0.04) 0%, transparent 60%);
-    }
-
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      width: 100%;
-      max-width: 480px;
-      padding: 40px;
-      box-shadow: 0 24px 80px rgba(0,0,0,0.5);
-      animation: rise 0.5s cubic-bezier(0.16,1,0.3,1) both;
-    }
-
-    @keyframes rise {
-      from { opacity: 0; transform: translateY(20px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    .header {
-      margin-bottom: 36px;
-    }
-
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: rgba(201,245,66,0.1);
-      border: 1px solid rgba(201,245,66,0.2);
-      color: var(--accent);
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      padding: 4px 10px;
-      border-radius: 100px;
-      margin-bottom: 14px;
-    }
-
-    .badge::before {
-      content: '';
-      width: 6px; height: 6px;
-      background: var(--accent);
-      border-radius: 50%;
-    }
-
-    h1 {
-      font-size: 26px;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      line-height: 1.2;
-      color: var(--text);
-    }
-
-    h1 span { color: var(--accent); }
-
-    .subtitle {
-      margin-top: 6px;
-      font-size: 13px;
-      color: var(--text-muted);
-      font-weight: 300;
-    }
-
-    .divider {
-      height: 1px;
-      background: var(--border);
-      margin: 28px 0;
-    }
-
-    .field {
-      margin-bottom: 20px;
-    }
-
-    label {
-      display: block;
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      margin-bottom: 8px;
-    }
-
-    .input-wrap {
-      position: relative;
-      display: flex;
-      align-items: center;
-    }
-
-    .currency-symbol {
-      position: absolute;
-      left: 14px;
-      font-family: 'Sora', sans-serif;
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--text-muted);
-      pointer-events: none;
-      transition: color 0.2s;
-    }
-
-    input[type="number"] {
-      width: 100%;
-      background: var(--surface2);
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius);
-      color: var(--text);
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 18px;
-      font-weight: 500;
-      padding: 14px 16px 14px 32px;
-      outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
-      -moz-appearance: textfield;
-    }
-
+        radial-gradient(ellipse 40% 40% at 10% 90%, rgba(201,245,66,0.04) 0%, transparent 60%); }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px;
+      width: 100%; max-width: 480px; padding: 40px; box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+      animation: rise 0.5s cubic-bezier(0.16,1,0.3,1) both; }
+    @keyframes rise { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+    .badge { display:inline-flex; align-items:center; gap:6px;
+      background:rgba(201,245,66,0.1); border:1px solid rgba(201,245,66,0.2);
+      color:var(--accent); font-size:11px; font-weight:600; letter-spacing:0.08em;
+      text-transform:uppercase; padding:4px 10px; border-radius:100px; margin-bottom:14px; }
+    .badge::before { content:''; width:6px; height:6px; background:var(--accent); border-radius:50%; }
+    h1 { font-size:26px; font-weight:700; letter-spacing:-0.02em; line-height:1.2; }
+    h1 span { color:var(--accent); }
+    .subtitle { margin-top:6px; font-size:13px; color:var(--text-muted); font-weight:300; }
+    .divider { height:1px; background:var(--border); margin:28px 0; }
+    .field { margin-bottom:20px; }
+    label { display:block; font-size:12px; font-weight:600; letter-spacing:0.06em;
+      text-transform:uppercase; color:var(--text-muted); margin-bottom:8px; }
+    .input-wrap { position:relative; display:flex; align-items:center; }
+    .currency-symbol { position:absolute; left:14px; font-size:15px; font-weight:600;
+      color:var(--text-muted); pointer-events:none; transition:color 0.2s; }
+    input[type="number"] { width:100%; background:var(--surface2); border:1.5px solid var(--border);
+      border-radius:var(--radius); color:var(--text); font-family:'JetBrains Mono',monospace;
+      font-size:18px; font-weight:500; padding:14px 16px 14px 32px; outline:none;
+      transition:border-color 0.2s,box-shadow 0.2s; -moz-appearance:textfield; }
     input[type="number"]::-webkit-outer-spin-button,
-    input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
-
-    input[type="number"]:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(201,245,66,0.12);
-    }
-
-    input[type="number"]:focus + .currency-symbol,
-    .input-wrap:focus-within .currency-symbol {
-      color: var(--accent);
-    }
-
-    .hint {
-      margin-top: 6px;
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-
-    .error-msg {
-      font-size: 11px;
-      color: var(--danger);
-      margin-top: 6px;
-      display: none;
-    }
-
-    .error-msg.show { display: block; }
-
-    .btn {
-      width: 100%;
-      margin-top: 8px;
-      padding: 15px;
-      background: var(--accent);
-      color: #0f0f11;
-      border: none;
-      border-radius: var(--radius);
-      font-family: 'Sora', sans-serif;
-      font-size: 14px;
-      font-weight: 700;
-      letter-spacing: 0.02em;
-      cursor: pointer;
-      transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
-    }
-
-    .btn:hover {
-      background: var(--accent-dim);
-      box-shadow: 0 6px 24px rgba(201,245,66,0.25);
-    }
-
-    .btn:active { transform: scale(0.98); }
-
-    /* Output section */
-    .output {
-      margin-top: 28px;
-      background: var(--surface2);
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius);
-      padding: 18px;
-      display: none;
-      animation: rise 0.35s cubic-bezier(0.16,1,0.3,1) both;
-    }
-
-    .output.show { display: block; }
-
-    .output-label {
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: var(--accent);
-      margin-bottom: 10px;
-    }
-
-    .link-box {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      color: var(--text-muted);
-      word-break: break-all;
-      line-height: 1.6;
-      background: var(--bg);
-      border-radius: 8px;
-      padding: 12px;
-      border: 1px solid var(--border);
-      margin-bottom: 14px;
-      max-height: 80px;
-      overflow-y: auto;
-    }
-
-    .copy-btn {
-      width: 100%;
-      padding: 11px;
-      background: transparent;
-      border: 1.5px solid var(--accent);
-      border-radius: 10px;
-      color: var(--accent);
-      font-family: 'Sora', sans-serif;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s, color 0.2s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-
-    .copy-btn:hover {
-      background: rgba(201,245,66,0.1);
-    }
-
-    .copy-btn.copied {
-      background: var(--accent);
-      color: #0f0f11;
-      border-color: var(--accent);
-    }
-
-    .summary-row {
-      display: flex;
-      justify-content: space-between;
-      font-size: 12px;
-      margin-bottom: 6px;
-    }
-
-    .summary-row span:first-child { color: var(--text-muted); }
-    .summary-row span:last-child {
-      font-family: 'JetBrains Mono', monospace;
-      font-weight: 500;
-      color: var(--text);
-    }
-
-    .summary-row.balance span:last-child { color: var(--accent); }
-
-    .reset-btn {
-      margin-top: 14px;
-      width: 100%;
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      font-family: 'Sora', sans-serif;
-      font-size: 12px;
-      cursor: pointer;
-      text-decoration: underline;
-      text-underline-offset: 3px;
-      transition: color 0.2s;
-    }
-
-    .reset-btn:hover { color: var(--text); }
-
-    .footer {
-      margin-top: 28px;
-      text-align: center;
-      font-size: 11px;
-      color: var(--text-muted);
-    }
+    input[type="number"]::-webkit-inner-spin-button { -webkit-appearance:none; }
+    input[type="number"]:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(201,245,66,0.12); }
+    .input-wrap:focus-within .currency-symbol { color:var(--accent); }
+    .hint { margin-top:6px; font-size:11px; color:var(--text-muted); }
+    .error-msg { font-size:11px; color:var(--danger); margin-top:6px; display:none; }
+    .error-msg.show { display:block; }
+    .btn { width:100%; margin-top:8px; padding:15px; background:var(--accent); color:#0f0f11;
+      border:none; border-radius:var(--radius); font-family:'Sora',sans-serif; font-size:14px;
+      font-weight:700; letter-spacing:0.02em; cursor:pointer;
+      transition:background 0.2s,transform 0.1s,box-shadow 0.2s; }
+    .btn:hover { background:var(--accent-dim); box-shadow:0 6px 24px rgba(201,245,66,0.25); }
+    .btn:active { transform:scale(0.98); }
+    .btn:disabled { opacity:0.5; cursor:not-allowed; }
+    .output { margin-top:28px; background:var(--surface2); border:1.5px solid var(--border);
+      border-radius:var(--radius); padding:18px; display:none;
+      animation:rise 0.35s cubic-bezier(0.16,1,0.3,1) both; }
+    .output.show { display:block; }
+    .output-label { font-size:11px; font-weight:600; letter-spacing:0.06em;
+      text-transform:uppercase; color:var(--accent); margin-bottom:10px; }
+    .summary-row { display:flex; justify-content:space-between; font-size:12px; margin-bottom:6px; }
+    .summary-row span:first-child { color:var(--text-muted); }
+    .summary-row span:last-child { font-family:'JetBrains Mono',monospace; font-weight:500; }
+    .summary-row.balance span:last-child { color:var(--accent); }
+    .link-box { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-muted);
+      word-break:break-all; line-height:1.6; background:var(--bg); border-radius:8px;
+      padding:12px; border:1px solid var(--border); margin-bottom:14px;
+      max-height:80px; overflow-y:auto; }
+    .copy-btn { width:100%; padding:11px; background:transparent;
+      border:1.5px solid var(--accent); border-radius:10px; color:var(--accent);
+      font-family:'Sora',sans-serif; font-size:13px; font-weight:600; cursor:pointer;
+      transition:background 0.2s,color 0.2s; display:flex; align-items:center;
+      justify-content:center; gap:8px; }
+    .copy-btn:hover { background:rgba(201,245,66,0.1); }
+    .copy-btn.copied { background:var(--accent); color:#0f0f11; border-color:var(--accent); }
+    .reset-btn { margin-top:14px; width:100%; background:none; border:none;
+      color:var(--text-muted); font-family:'Sora',sans-serif; font-size:12px;
+      cursor:pointer; text-decoration:underline; text-underline-offset:3px;
+      transition:color 0.2s; }
+    .reset-btn:hover { color:var(--text); }
+    .footer { margin-top:28px; text-align:center; font-size:11px; color:var(--text-muted); }
+    .status-msg { font-size:12px; text-align:center; margin-top:10px; color:var(--text-muted); }
+    .status-msg.error { color:var(--danger); }
   </style>
 </head>
 <body>
+  <!-- ⚙️ CONFIG: Replace with your deployed Worker URL after running `wrangler deploy` -->
+  <script>const WORKER_URL = 'https://thesis-crm-worker.YOUR_CF_SUBDOMAIN.workers.dev';</script>
+
   <div class="card">
-    <div class="header">
+    <div>
       <div class="badge">Admin Tool</div>
       <h1>Intake <span>Link</span> Generator</h1>
       <p class="subtitle">Generate a prefilled client onboarding link instantly.</p>
     </div>
-
     <div class="divider"></div>
-
     <div class="field">
       <label>Total Project Value</label>
       <div class="input-wrap">
@@ -321,7 +105,6 @@
       </div>
       <div class="error-msg" id="total-err">Please enter a valid total amount.</div>
     </div>
-
     <div class="field">
       <label>Advance to Collect</label>
       <div class="input-wrap">
@@ -331,92 +114,80 @@
       <div class="hint">Must be less than or equal to total project value.</div>
       <div class="error-msg" id="advance-err">Advance cannot exceed the total project value.</div>
     </div>
-
-    <button class="btn" onclick="generate()">Generate Link →</button>
-
+    <button class="btn" id="gen-btn" onclick="generate()">Generate Link →</button>
+    <p class="status-msg" id="status-msg"></p>
     <div class="output" id="output">
       <div class="output-label">✦ Link Ready</div>
-
-      <div class="summary-row">
-        <span>Total Value</span>
-        <span id="out-total">—</span>
-      </div>
-      <div class="summary-row">
-        <span>Advance</span>
-        <span id="out-advance">—</span>
-      </div>
-      <div class="summary-row balance">
-        <span>Remaining after advance</span>
-        <span id="out-balance">—</span>
-      </div>
-
-      <div class="divider" style="margin: 14px 0;"></div>
-
+      <div class="summary-row"><span>Total Value</span><span id="out-total">—</span></div>
+      <div class="summary-row"><span>Advance</span><span id="out-advance">—</span></div>
+      <div class="summary-row balance"><span>Remaining after advance</span><span id="out-balance">—</span></div>
+      <div class="divider" style="margin:14px 0;"></div>
       <div class="output-label">Shareable Link</div>
       <div class="link-box" id="link-display"></div>
-
       <button class="copy-btn" id="copy-btn" onclick="copyLink()">
-        <span id="copy-icon">⎘</span>
-        <span id="copy-text">Copy Link</span>
+        <span id="copy-icon">⎘</span><span id="copy-text">Copy Link</span>
       </button>
-
       <button class="reset-btn" onclick="reset()">Clear and start over</button>
     </div>
-
     <div class="footer">For internal use only · Thesis Research CRM</div>
   </div>
 
   <script>
     let generatedLink = '';
+    function fmt(n) { return '₹' + Number(n).toLocaleString('en-IN'); }
 
-    function fmt(n) {
-      return '₹' + Number(n).toLocaleString('en-IN');
-    }
-
-    function generate() {
+    async function generate() {
       const total = parseFloat(document.getElementById('total').value);
       const advance = parseFloat(document.getElementById('advance').value);
-
       const totalErr = document.getElementById('total-err');
       const advErr = document.getElementById('advance-err');
+      const statusMsg = document.getElementById('status-msg');
+      const btn = document.getElementById('gen-btn');
 
       totalErr.classList.remove('show');
       advErr.classList.remove('show');
+      statusMsg.textContent = '';
+      statusMsg.className = 'status-msg';
 
       let valid = true;
-
-      if (!total || total <= 0) {
-        totalErr.classList.add('show');
-        valid = false;
-      }
-
-      if (!advance || advance <= 0 || advance > total) {
-        advErr.classList.add('show');
-        valid = false;
-      }
-
+      if (!total || total <= 0) { totalErr.classList.add('show'); valid = false; }
+      if (!advance || advance <= 0 || advance > total) { advErr.classList.add('show'); valid = false; }
       if (!valid) return;
 
-      generatedLink =
-        'https://airtable.com/appXfVVzb9jzX3jmx/pagJGC0XwkBjgCVMV/form' +
-        '?prefill_Total+project+value=' + total +
-        '&hide_Total+project+value=true' +
-        '&prefill_Advance+Expected=' + advance +
-        '&hide_Advance+Expected=true';
+      btn.disabled = true;
+      btn.textContent = 'Generating...';
 
-      document.getElementById('out-total').textContent = fmt(total);
-      document.getElementById('out-advance').textContent = fmt(advance);
-      document.getElementById('out-balance').textContent = fmt(total - advance);
-      document.getElementById('link-display').textContent = generatedLink;
+      try {
+        const res = await fetch(`${WORKER_URL}/generate-link`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ total, advance }),
+        });
+        const data = await res.json();
 
-      const output = document.getElementById('output');
-      output.classList.add('show');
-      output.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        if (!res.ok || !data.link) throw new Error(data.error || 'Failed to generate link');
 
-      // reset copy button
-      const btn = document.getElementById('copy-btn');
-      btn.classList.remove('copied');
-      document.getElementById('copy-text').textContent = 'Copy Link';
+        generatedLink = data.link;
+        document.getElementById('out-total').textContent = fmt(total);
+        document.getElementById('out-advance').textContent = fmt(advance);
+        document.getElementById('out-balance').textContent = fmt(total - advance);
+        document.getElementById('link-display').textContent = generatedLink;
+
+        const output = document.getElementById('output');
+        output.classList.add('show');
+        output.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+        const copyBtn = document.getElementById('copy-btn');
+        copyBtn.classList.remove('copied');
+        document.getElementById('copy-text').textContent = 'Copy Link';
+        document.getElementById('copy-icon').textContent = '⎘';
+      } catch (err) {
+        statusMsg.textContent = '⚠ ' + err.message;
+        statusMsg.classList.add('error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Generate Link →';
+      }
     }
 
     function copyLink() {
@@ -440,13 +211,11 @@
       document.getElementById('output').classList.remove('show');
       document.getElementById('total-err').classList.remove('show');
       document.getElementById('advance-err').classList.remove('show');
+      document.getElementById('status-msg').textContent = '';
       generatedLink = '';
     }
 
-    // Allow Enter key to trigger generate
-    document.addEventListener('keydown', e => {
-      if (e.key === 'Enter') generate();
-    });
+    document.addEventListener('keydown', e => { if (e.key === 'Enter') generate(); });
   </script>
 </body>
 </html>

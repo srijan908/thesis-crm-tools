@@ -1,0 +1,12 @@
+name = "thesis-crm-worker"
+main = "worker.js"
+compatibility_date = "2025-01-01"
+
+# Set your Airtable API key as a secret — never commit it to the repo:
+#   wrangler secret put AIRTABLE_API_KEY
+#
+# Then deploy with:
+#   wrangler deploy
+#
+# Your Worker URL will be:
+#   https://thesis-crm-worker.<your-cf-subdomain>.workers.dev
