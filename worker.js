@@ -3,16 +3,14 @@
  * Proxies Airtable API calls so the API key stays secret.
  *
  * Endpoints:
- *   POST /generate-link  { total, advance } → logs to Airtable + returns { link }
- *   GET  /lookup?phone=  → returns ticket + payment details
- *
- * Deploy:
- *   1. wrangler secret put AIRTABLE_API_KEY
- *   2. wrangler deploy
+ *   POST /generate-link  { total, advance } → logs to Airtable + returns { link } (short URL)
+ *   GET  /f/:token       → decodes token, redirects to Airtable form (no pricing in URL)
+ *   GET  /lookup?phone=  → returns ticket + payment details for customer tracker
  */
 
 const BASE_ID = 'appXfVVzb9jzX3jmx';
-const FORM_URL = `https://airtable.com/${BASE_ID}/pagJGC0XwkBjgCVMV/form`;
+const FORM_BASE = `https://airtable.com/${BASE_ID}/pagJGC0XwkBjgCVMV/form`;
+const WORKER_BASE = 'https://thesis-crm-worker.srijancrm.workers.dev';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -49,6 +47,26 @@ function selectName(field) {
   return typeof field === 'object' ? field.name : field;
 }
 
+// Encode total:advance into a URL-safe opaque token (no pricing visible in URL)
+function makeToken(total, advance) {
+  const raw = btoa(`${total}:${advance}`);
+  return raw.replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+}
+
+// Decode token back to { total, advance }
+function parseToken(token) {
+  try {
+    const base64 = token.replace(/-/g, '+').replace(/_/g, '/');
+    const padding = base64.length % 4 === 0 ? '' : '='.repeat(4 - (base64.length % 4));
+    const decoded = atob(base64 + padding);
+    const [total, advance] = decoded.split(':').map(Number);
+    if (!total || !advance || isNaN(total) || isNaN(advance)) return null;
+    return { total, advance };
+  } catch {
+    return null;
+  }
+}
+
 export default {
   async fetch(request, env) {
     const { pathname, searchParams } = new URL(request.url);
@@ -58,7 +76,7 @@ export default {
     }
 
     try {
-      // ── POST /generate-link ────────────────────────────────────────────────
+      // ── POST /generate-link ──────────────────────────────────────────────────
       if (pathname === '/generate-link' && request.method === 'POST') {
         const { total, advance } = await request.json();
 
@@ -66,7 +84,7 @@ export default {
           return json({ error: 'Invalid input' }, 400);
         }
 
-        // Log to Link Generator table
+        // Log to Link Generator table in Airtable
         await airtable(env, 'Link Generator', '', {
           method: 'POST',
           body: JSON.stringify({
@@ -77,17 +95,36 @@ export default {
           }),
         });
 
-        const link =
-          `${FORM_URL}` +
+        // Return a short opaque link — no pricing visible in the URL
+        const token = makeToken(total, advance);
+        const link = `${WORKER_BASE}/f/${token}`;
+
+        return json({ link });
+      }
+
+      // ── GET /f/:token (short link redirect) ──────────────────────────────────
+      // Client clicks this link → Worker decodes it → redirects to Airtable form
+      // Pricing never appears in any URL the client sees
+      if (pathname.startsWith('/f/')) {
+        const token = pathname.slice(3);
+        const parsed = parseToken(token);
+
+        if (!parsed) {
+          return new Response('Invalid or expired link.', { status: 400 });
+        }
+
+        const { total, advance } = parsed;
+        const destination =
+          `${FORM_BASE}` +
           `?prefill_Total+project+value=${total}` +
           `&hide_Total+project+value=true` +
           `&prefill_Advance+Expected=${advance}` +
           `&hide_Advance+Expected=true`;
 
-        return json({ link });
+        return Response.redirect(destination, 302);
       }
 
-      // ── GET /lookup?phone= ─────────────────────────────────────────────────
+      // ── GET /lookup?phone= ───────────────────────────────────────────────────
       if (pathname === '/lookup' && request.method === 'GET') {
         const rawPhone = searchParams.get('phone') || '';
         const digits = digitsOnly(rawPhone);
@@ -96,7 +133,6 @@ export default {
           return json({ error: 'Please enter a valid phone number' }, 400);
         }
 
-        // Strip formatting from stored numbers before comparing
         const formula = encodeURIComponent(
           `SEARCH("${digits}",SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE({Phone Number},"(",""),")",""),"-","")," ",""),"+",""))`
         );
