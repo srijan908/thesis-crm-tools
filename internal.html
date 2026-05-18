@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ticket — Team View</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f5f5f7;
+      --card: #ffffff;
+      --border: #e0e0e5;
+      --accent: #0071e3;
+      --accent-light: #e8f1fb;
+      --text: #1d1d1f;
+      --muted: #6e6e73;
+      --green-bg: #e8f8ee;
+      --green-fg: #1a7f3c;
+      --amber-bg: #fff3e0;
+      --amber-fg: #b85c00;
+      --red: #ff3b30;
+      --r: 18px;
+      --rs: 10px;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── PIN Screen ── */
+    #pin-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .pin-card {
+      background: var(--card);
+      border-radius: var(--r);
+      padding: 44px 36px;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 2px 24px rgba(0,0,0,.09);
+      text-align: center;
+    }
+    .pin-icon { font-size: 36px; margin-bottom: 18px; }
+    .pin-card h1 { font-size: 22px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+    .pin-card p  { font-size: 14px; color: var(--muted); line-height: 1.55; margin-bottom: 28px; }
+    .pin-input {
+      width: 100%;
+      text-align: center;
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: .25em;
+      border: 1.5px solid var(--border);
+      border-radius: var(--rs);
+      padding: 14px;
+      outline: none;
+      font-family: inherit;
+      color: var(--text);
+      background: var(--bg);
+      transition: border-color .2s;
+    }
+    .pin-input:focus { border-color: var(--accent); background: #fff; }
+    .pin-remember {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin: 14px 0 22px;
+      font-size: 13px;
+      color: var(--muted);
+      cursor: pointer;
+      user-select: none;
+    }
+    .pin-remember input { cursor: pointer; accent-color: var(--accent); width: 15px; height: 15px; }
+    .pin-err { font-size: 13px; color: var(--red); margin-top: 12px; min-height: 18px; }
+
+    /* ── Main view ── */
+    #main-view { display: none; padding: 32px 16px 60px; }
+    .wrap { max-width: 600px; margin: 0 auto; }
+
+    /* Admin badge */
+    .admin-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 22px;
+    }
+    .admin-badge {
+      background: var(--accent);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 14px;
+      border-radius: 100px;
+      letter-spacing: .03em;
+    }
+    .view-as-customer {
+      font-size: 12px;
+      color: var(--accent);
+      text-decoration: none;
+      padding: 5px 12px;
+      border: 1.5px solid var(--accent-light);
+      border-radius: 100px;
+      transition: background .2s;
+    }
+    .view-as-customer:hover { background: var(--accent-light); }
+
+    /* Header */
+    .hdr { text-align: center; margin-bottom: 26px; }
+    .hdr h1 { font-size: 26px; font-weight: 700; letter-spacing: -.02em; }
+    .hdr .sub { font-size: 14px; color: var(--muted); margin-top: 4px; }
+
+    /* Card */
+    .card { background: var(--card); border-radius: var(--r); padding: 22px; margin-bottom: 14px; box-shadow: 0 2px 12px rgba(0,0,0,.06); }
+    .card-label { font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
+
+    /* Stage timeline */
+    .timeline { display: flex; align-items: flex-start; overflow-x: auto; padding-bottom: 2px; }
+    .tl-item { display: flex; flex-direction: column; align-items: center; flex: 1; min-width: 64px; }
+    .tl-track { display: flex; align-items: center; width: 100%; }
+    .tl-line { flex: 1; height: 2px; background: var(--border); transition: background .3s; }
+    .tl-line.done { background: var(--accent); }
+    .tl-dot { width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0; border: 2px solid var(--border); background: var(--card); position: relative; z-index: 1; transition: all .3s; }
+    .tl-dot.done { background: var(--accent); border-color: var(--accent); }
+    .tl-dot.done::after { content: '✓'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #fff; }
+    .tl-dot.current { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-light); }
+    .tl-dot.current::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 7px; height: 7px; background: #fff; border-radius: 50%; }
+    .tl-label { font-size: 10px; font-weight: 500; color: var(--muted); text-align: center; margin-top: 8px; line-height: 1.3; padding: 0 2px; }
+    .tl-label.active { color: var(--accent); font-weight: 600; }
+
+    /* Stage controls */
+    .stage-controls { display: flex; gap: 10px; margin-top: 18px; }
+    .stage-btn { flex: 1; padding: 11px; border-radius: var(--rs); font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; border: none; transition: opacity .2s; }
+    .stage-btn-prev { background: var(--bg); color: var(--text); border: 1.5px solid var(--border); }
+    .stage-btn-next { background: var(--accent); color: #fff; }
+    .stage-btn:disabled { opacity: .3; cursor: not-allowed; }
+    .stage-note { text-align: center; font-size: 12px; color: var(--muted); margin-top: 10px; }
+
+    /* Info rows */
+    .info-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--border); gap: 16px; }
+    .info-row:last-child { border-bottom: none; }
+    .info-key { font-size: 13px; color: var(--muted); flex-shrink: 0; }
+    .info-val { font-size: 13px; font-weight: 500; text-align: right; line-height: 1.5; max-width: 65%; }
+
+    /* Payment rows */
+    .pay-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); gap: 12px; }
+    .pay-row:last-child { border-bottom: none; }
+    .pay-name { font-size: 14px; font-weight: 500; }
+    .pay-amt  { font-size: 13px; color: var(--muted); margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .pill { padding: 4px 10px; border-radius: 100px; font-size: 11px; font-weight: 600; flex-shrink: 0; }
+    .pill-paid    { background: var(--green-bg); color: var(--green-fg); }
+    .pill-pending { background: var(--amber-bg); color: var(--amber-fg); }
+
+    /* Balance */
+    .bal-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; }
+    .bal-row.total { padding-top: 12px; border-top: 1px solid var(--border); margin-top: 4px; }
+    .bal-row .lbl { font-size: 13px; color: var(--muted); }
+    .bal-row .amt { font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .bal-row.total .amt { font-size: 16px; color: var(--accent); }
+
+    /* Comments */
+    .comment { padding: 12px 0; border-bottom: 1px solid var(--border); }
+    .comment:last-of-type { border-bottom: none; }
+    .c-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+    .c-author { font-size: 12px; font-weight: 600; }
+    .c-author.team { color: var(--accent); }
+    .c-author.customer { color: var(--muted); }
+    .c-time { font-size: 11px; color: var(--muted); }
+    .c-text { font-size: 14px; line-height: 1.55; white-space: pre-wrap; }
+    .no-comments { font-size: 13px; color: var(--muted); text-align: center; padding: 20px 0; }
+
+    /* Comment input */
+    .c-input-wrap { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+    textarea { width: 100%; border: 1.5px solid var(--border); border-radius: var(--rs); padding: 11px 13px; font-family: inherit; font-size: 14px; color: var(--text); background: var(--bg); resize: none; outline: none; transition: border-color .2s; line-height: 1.5; }
+    textarea:focus { border-color: var(--accent); background: #fff; }
+
+    /* Buttons */
+    .btn { display: block; width: 100%; margin-top: 10px; padding: 13px; background: var(--accent); color: #fff; border: none; border-radius: var(--rs); font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer; transition: opacity .2s; }
+    .btn:hover { opacity: .87; }
+    .btn:disabled { opacity: .45; cursor: not-allowed; }
+    .btn-ghost { background: transparent; color: var(--muted); border: 1.5px solid var(--border); font-size: 13px; padding: 10px; margin-top: 8px; }
+    .btn-ghost:hover { opacity: 1; border-color: var(--accent); color: var(--accent); }
+
+    /* Action link */
+    .action-link { display: flex; align-items: center; justify-content: space-between; padding: 13px 0; border-bottom: 1px solid var(--border); text-decoration: none; color: var(--text); font-size: 14px; font-weight: 500; transition: color .2s; cursor: pointer; background: none; border-left: none; border-right: none; border-top: none; width: 100%; font-family: inherit; }
+    .action-link:last-child { border-bottom: none; }
+    .action-link:hover { color: var(--accent); }
+    .action-link .arrow { color: var(--muted); font-size: 16px; }
+
+    /* Loading */
+    .loading { text-align: center; padding: 60px 24px; color: var(--muted); font-size: 15px; }
+
+    /* Toast */
+    .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); background: #1d1d1f; color: #fff; padding: 11px 20px; border-radius: 100px; font-size: 13px; font-weight: 500; opacity: 0; transition: opacity .25s; pointer-events: none; white-space: nowrap; z-index: 100; }
+    .toast.show { opacity: 1; }
+
+    .hidden { display: none; }
+
+    @media (max-width: 380px) {
+      .tl-label { font-size: 9px; }
+      .tl-dot   { width: 16px; height: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── PIN Screen ────────────────────────────────────────────── -->
+<div id="pin-screen">
+  <div class="pin-card">
+    <div class="pin-icon">🔐</div>
+    <h1>Team Access</h1>
+    <p>Enter your admin PIN to manage this ticket.</p>
+    <input class="pin-input" type="password" id="pin-input" maxlength="16" placeholder="• • • • • •" autocomplete="current-password" />
+    <label class="pin-remember">
+      <input type="checkbox" id="pin-remember" /> Remember on this device
+    </label>
+    <button class="btn" onclick="submitPin()">Continue</button>
+    <div class="pin-err" id="pin-err"></div>
+  </div>
+</div>
+
+<!-- ── Main View ─────────────────────────────────────────────── -->
+<div id="main-view">
+  <div class="wrap">
+
+    <div class="admin-bar">
+      <span class="admin-badge">● Team View</span>
+      <a id="customer-link" href="#" class="view-as-customer">Customer view ↗</a>
+    </div>
+
+    <div class="hdr">
+      <h1 id="hdr-name">Loading…</h1>
+      <div class="sub" id="hdr-id"></div>
+    </div>
+
+    <div id="view-loading" class="loading">Loading ticket…</div>
+
+    <div id="ticket-content" class="hidden">
+
+      <!-- Stage controls -->
+      <div class="card">
+        <div class="card-label">Order Stage</div>
+        <div class="timeline" id="timeline"></div>
+        <div class="stage-controls">
+          <button class="stage-btn stage-btn-prev" id="btn-prev" onclick="moveStage(-1)">← Previous</button>
+          <button class="stage-btn stage-btn-next" id="btn-next" onclick="moveStage(1)">Next →</button>
+        </div>
+        <div class="stage-note" id="stage-note"></div>
+      </div>
+
+      <!-- Client details -->
+      <div class="card">
+        <div class="card-label">Client Details</div>
+        <div class="info-row"><span class="info-key">Name</span><span class="info-val" id="d-name"></span></div>
+        <div class="info-row"><span class="info-key">Phone</span><span class="info-val" id="d-phone"></span></div>
+        <div class="info-row"><span class="info-key">Thesis</span><span class="info-val" id="d-thesis"></span></div>
+        <div class="info-row"><span class="info-key">Project Value</span><span class="info-val" id="d-total"></span></div>
+      </div>
+
+      <!-- Payments -->
+      <div class="card">
+        <div class="card-label">Payments</div>
+        <div id="pay-list"></div>
+        <div style="margin-top:14px;">
+          <div class="bal-row"><span class="lbl">Total Paid</span><span class="amt" id="bal-paid"></span></div>
+          <div class="bal-row total"><span class="lbl">Balance Due</span><span class="amt" id="bal-due"></span></div>
+        </div>
+        <p style="margin-top:12px;font-size:12px;color:var(--muted);">To add or edit payments, use Airtable Interface.</p>
+      </div>
+
+      <!-- Comments -->
+      <div class="card">
+        <div class="card-label">Comments</div>
+        <div id="c-list"></div>
+        <div class="c-input-wrap">
+          <textarea id="c-input" rows="3" placeholder="Post an update for the client… (Enter to send)"></textarea>
+          <button class="btn" id="c-btn" onclick="postComment()">Post as Team</button>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="card">
+        <div class="card-label">Actions</div>
+        <button class="action-link" onclick="copyTrackerLink()">
+          <span>Copy customer tracker link</span><span class="arrow">→</span>
+        </button>
+        <button class="action-link" onclick="copyInternalLink()">
+          <span>Copy team link for this ticket</span><span class="arrow">→</span>
+        </button>
+        <a id="airtable-link" href="https://airtable.com/appXfVVzb9jzX3jmx" target="_blank" class="action-link">
+          <span>Open base in Airtable</span><span class="arrow">↗</span>
+        </a>
+        <button class="action-link" onclick="logout()" style="color:var(--muted);">
+          <span>Sign out of this device</span><span class="arrow">→</span>
+        </button>
+      </div>
+
+    </div><!-- /ticket-content -->
+  </div><!-- /wrap -->
+</div><!-- /main-view -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+const WORKER   = 'https://thesis-crm-worker.srijancrm.workers.dev';
+const PAGES    = 'https://srijan908.github.io/thesis-crm-tools';
+const TOKEN    = new URLSearchParams(location.search).get('token');
+
+const STAGES = [
+  { key: 'Intake',      label: 'Received'   },
+  { key: 'In Progress', label: 'In Progress' },
+  { key: 'Review',      label: 'Review'      },
+  { key: 'Revision',    label: 'Revision'    },
+  { key: 'Delivered',   label: 'Delivered'   },
+  { key: 'Closed',      label: 'Complete'    },
+];
+const STAGE_KEYS = STAGES.map(s => s.key);
+
+let adminPin = '';
+let stageIdx  = 0;
+
+function fmt(n) { return '₹' + Number(n || 0).toLocaleString('en-IN'); }
+
+function timeAgo(ts) {
+  const m = Math.floor((Date.now() - new Date(ts)) / 60000);
+  if (m < 1)  return 'just now';
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return new Date(ts).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+// ── PIN auth ─────────────────────────────────────────────────────────────────
+async function submitPin() {
+  const pin = document.getElementById('pin-input').value.trim();
+  const errEl = document.getElementById('pin-err');
+  errEl.textContent = '';
+  if (!pin) { errEl.textContent = 'Please enter your PIN.'; return; }
+
+  adminPin = pin;
+  if (document.getElementById('pin-remember').checked) {
+    localStorage.setItem('adminPin', pin);
+  }
+
+  document.getElementById('pin-screen').style.display = 'none';
+  document.getElementById('main-view').style.display   = 'block';
+  await loadTicket();
+}
+
+// ── Timeline ─────────────────────────────────────────────────────────────────
+function renderTimeline(status) {
+  const cur = STAGES.findIndex(s => s.key === status);
+  stageIdx  = cur >= 0 ? cur : 0;
+  document.getElementById('timeline').innerHTML = STAGES.map((s, i) => `
+    <div class="tl-item">
+      <div class="tl-track">
+        ${i > 0 ? `<div class="tl-line ${i <= cur ? 'done' : ''}"></div>` : ''}
+        <div class="tl-dot ${i < cur ? 'done' : i === cur ? 'current' : ''}"></div>
+        ${i < STAGES.length - 1 ? `<div class="tl-line ${i < cur ? 'done' : ''}"></div>` : ''}
+      </div>
+      <div class="tl-label ${i === cur ? 'active' : ''}">${s.label}</div>
+    </div>`).join('');
+  updateStageBtns();
+}
+
+function updateStageBtns() {
+  document.getElementById('btn-prev').disabled = stageIdx <= 0;
+  document.getElementById('btn-next').disabled = stageIdx >= STAGES.length - 1;
+  document.getElementById('stage-note').textContent = `Current: ${STAGE_KEYS[stageIdx] || '—'}`;
+}
+
+async function moveStage(dir) {
+  const newIdx = stageIdx + dir;
+  if (newIdx < 0 || newIdx >= STAGES.length) return;
+  const newStage = STAGE_KEYS[newIdx];
+
+  document.getElementById('btn-prev').disabled = true;
+  document.getElementById('btn-next').disabled = true;
+
+  try {
+    const res  = await fetch(`${WORKER}/ticket/stage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: TOKEN, pin: adminPin, stage: newStage }),
+    });
+    const data = await res.json();
+
+    if (res.status === 401) {
+      toast('Wrong PIN — sign out and try again.');
+      updateStageBtns();
+      return;
+    }
+    if (data.success) {
+      stageIdx = newIdx;
+      renderTimeline(newStage);
+      toast(`Stage updated to "${newStage}"`);
+    } else { toast('Could not update stage.'); updateStageBtns(); }
+  } catch { toast('Something went wrong.'); updateStageBtns(); }
+}
+
+// ── Payments ──────────────────────────────────────────────────────────────────
+function renderPayments(payments) {
+  const order = ['Advance', 'Midway', 'Final'];
+  const sorted = [...payments].sort((a, b) => order.indexOf(a.milestone) - order.indexOf(b.milestone));
+  document.getElementById('pay-list').innerHTML = sorted.length
+    ? sorted.map(p => `
+        <div class="pay-row">
+          <div>
+            <div class="pay-name">${p.milestone || '—'}</div>
+            <div class="pay-amt">${fmt(p.amount)}</div>
+          </div>
+          <div class="pill ${p.status === 'Paid' ? 'pill-paid' : 'pill-pending'}">${p.status || 'Pending'}</div>
+        </div>`).join('')
+    : '<p style="font-size:13px;color:var(--muted);padding:8px 0;">No payments yet.</p>';
+}
+
+// ── Comments ──────────────────────────────────────────────────────────────────
+function renderComments(comments) {
+  const el = document.getElementById('c-list');
+  if (!comments.length) { el.innerHTML = '<p class="no-comments">No comments yet.</p>'; return; }
+  el.innerHTML = comments.map(c => `
+    <div class="comment">
+      <div class="c-meta">
+        <span class="c-author ${c.isTeam ? 'team' : 'customer'}">${c.isTeam ? '● Team' : c.author}</span>
+        <span class="c-time">${timeAgo(c.timestamp)}</span>
+      </div>
+      <div class="c-text">${c.message.replace(/</g,'&lt;')}</div>
+    </div>`).join('');
+}
+
+async function postComment() {
+  const input = document.getElementById('c-input');
+  const btn   = document.getElementById('c-btn');
+  const msg   = input.value.trim();
+  if (!msg) return;
+
+  btn.disabled = true; btn.textContent = 'Posting…';
+  try {
+    const res  = await fetch(`${WORKER}/ticket/comment`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: TOKEN, message: msg, pin: adminPin }),
+    });
+    const data = await res.json();
+    if (res.status === 401) { toast('Wrong PIN.'); return; }
+    if (data.success) {
+      input.value = '';
+      toast('Comment posted!');
+      const cr = await fetch(`${WORKER}/ticket/comments?token=${TOKEN}`).then(r => r.json());
+      renderComments(cr.comments || []);
+    } else { toast('Could not post.'); }
+  } catch { toast('Something went wrong.'); }
+  finally { btn.disabled = false; btn.textContent = 'Post as Team'; }
+}
+
+// ── Actions ───────────────────────────────────────────────────────────────────
+function copyTrackerLink() {
+  navigator.clipboard.writeText(`${PAGES}/tracker.html?token=${TOKEN}`)
+    .then(() => toast('Customer tracker link copied!'));
+}
+function copyInternalLink() {
+  navigator.clipboard.writeText(`${PAGES}/internal.html?token=${TOKEN}`)
+    .then(() => toast('Team link copied!'));
+}
+function logout() {
+  localStorage.removeItem('adminPin');
+  location.reload();
+}
+
+// ── Load ticket ───────────────────────────────────────────────────────────────
+async function loadTicket() {
+  if (!TOKEN) {
+    document.getElementById('view-loading').textContent = 'No ticket token in URL.';
+    return;
+  }
+  try {
+    const [tr, cr] = await Promise.all([
+      fetch(`${WORKER}/ticket?token=${TOKEN}`).then(r => r.json()),
+      fetch(`${WORKER}/ticket/comments?token=${TOKEN}`).then(r => r.json()),
+    ]);
+    if (!tr.ticket) throw new Error();
+
+    const { ticket, payments } = tr;
+
+    document.getElementById('hdr-name').textContent  = ticket.clientName;
+    document.getElementById('hdr-id').textContent    = `Order #${ticket.id}`;
+    document.getElementById('d-name').textContent    = ticket.clientName;
+    document.getElementById('d-phone').textContent   = ticket.phone || '—';
+    document.getElementById('d-thesis').textContent  = ticket.thesisDetails || '—';
+    document.getElementById('d-total').textContent   = fmt(ticket.totalProjectValue);
+    document.getElementById('bal-paid').textContent  = fmt(ticket.totalPaid);
+    document.getElementById('bal-due').textContent   = fmt(ticket.remainingBalance);
+    document.getElementById('customer-link').href    = `${PAGES}/tracker.html?token=${TOKEN}`;
+
+    renderTimeline(ticket.orderStatus);
+    renderPayments(payments);
+    renderComments(cr.comments || []);
+
+    document.getElementById('view-loading').classList.add('hidden');
+    document.getElementById('ticket-content').classList.remove('hidden');
+  } catch {
+    document.getElementById('view-loading').textContent = 'Could not load ticket. Check your link or PIN.';
+  }
+}
+
+// ── Enter key shortcuts ───────────────────────────────────────────────────────
+document.getElementById('pin-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') submitPin();
+});
+document.getElementById('c-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); postComment(); }
+});
+
+// ── Auto-login from localStorage ─────────────────────────────────────────────
+const saved = localStorage.getItem('adminPin');
+if (saved) {
+  adminPin = saved;
+  document.getElementById('pin-screen').style.display = 'none';
+  document.getElementById('main-view').style.display   = 'block';
+  loadTicket();
+}
+</script>
+</body>
+</html>
