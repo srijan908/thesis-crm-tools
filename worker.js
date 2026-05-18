@@ -1,16 +1,16 @@
 /**
  * Thesis CRM — Cloudflare Worker
- * Proxies Airtable API calls so the API key stays secret.
  *
  * Endpoints:
- *   POST /generate-link  { total, advance } → logs to Airtable + returns { link } (short URL)
- *   GET  /f/:token       → decodes token, redirects to Airtable form (no pricing in URL)
- *   GET  /lookup?phone=  → returns ticket + payment details for customer tracker
+ *   POST /generate-link   { total, advance } → logs to Airtable, returns { link } short URL
+ *   GET  /f/:token        → redirects to custom form page (token in query param, no pricing in URL)
+ *   POST /submit          { token, name, phone, address, thesis } → creates Ticket in Airtable
+ *   GET  /lookup?phone=   → returns ticket + payments for customer tracker
  */
 
-const BASE_ID = 'appXfVVzb9jzX3jmx';
-const FORM_BASE = `https://airtable.com/${BASE_ID}/pagJGC0XwkBjgCVMV/form`;
-const WORKER_BASE = 'https://thesis-crm-worker.srijancrm.workers.dev';
+const BASE_ID      = 'appXfVVzb9jzX3jmx';
+const WORKER_BASE  = 'https://thesis-crm-worker.srijancrm.workers.dev';
+const PAGES_BASE   = 'https://srijan908.github.io/thesis-crm-tools';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -38,110 +38,94 @@ async function airtable(env, table, params = '', options = {}) {
   return res.json();
 }
 
-function digitsOnly(str) {
-  return str.replace(/\D/g, '');
-}
+function digitsOnly(str) { return str.replace(/\D/g, ''); }
+function selectName(f)   { return f ? (typeof f === 'object' ? f.name : f) : null; }
 
-function selectName(field) {
-  if (!field) return null;
-  return typeof field === 'object' ? field.name : field;
-}
-
-// Encode total:advance into a URL-safe opaque token (no pricing visible in URL)
 function makeToken(total, advance) {
-  const raw = btoa(`${total}:${advance}`);
-  return raw.replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+  return btoa(`${total}:${advance}`).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
 }
 
-// Decode token back to { total, advance }
 function parseToken(token) {
   try {
-    const base64 = token.replace(/-/g, '+').replace(/_/g, '/');
-    const padding = base64.length % 4 === 0 ? '' : '='.repeat(4 - (base64.length % 4));
-    const decoded = atob(base64 + padding);
+    const b64 = token.replace(/-/g,'+').replace(/_/g,'/');
+    const pad = b64.length % 4 === 0 ? '' : '='.repeat(4 - b64.length % 4);
+    const decoded = atob(b64 + pad);
     const [total, advance] = decoded.split(':').map(Number);
     if (!total || !advance || isNaN(total) || isNaN(advance)) return null;
     return { total, advance };
-  } catch {
-    return null;
-  }
+  } catch { return null; }
 }
 
 export default {
   async fetch(request, env) {
     const { pathname, searchParams } = new URL(request.url);
 
-    if (request.method === 'OPTIONS') {
-      return new Response(null, { headers: CORS });
-    }
+    if (request.method === 'OPTIONS') return new Response(null, { headers: CORS });
 
     try {
-      // ── POST /generate-link ──────────────────────────────────────────────────
+
+      // ── POST /generate-link ───────────────────────────────────────────────
       if (pathname === '/generate-link' && request.method === 'POST') {
         const { total, advance } = await request.json();
-
-        if (!total || !advance || advance <= 0 || advance > total) {
+        if (!total || !advance || advance <= 0 || advance > total)
           return json({ error: 'Invalid input' }, 400);
-        }
 
-        // Log to Link Generator table in Airtable
         await airtable(env, 'Link Generator', '', {
+          method: 'POST',
+          body: JSON.stringify({ fields: { 'Total Amount': Number(total), 'Advance amount': Number(advance) } }),
+        });
+
+        return json({ link: `${WORKER_BASE}/f/${makeToken(total, advance)}` });
+      }
+
+      // ── GET /f/:token (short link → redirect to custom form) ──────────────────────
+      if (pathname.startsWith('/f/')) {
+        const token = pathname.slice(3);
+        if (!parseToken(token)) return new Response('Invalid or expired link.', { status: 400 });
+        return Response.redirect(`${PAGES_BASE}/form.html?token=${token}`, 302);
+      }
+
+      // ── POST /submit ───────────────────────────────────────────────────────────
+      if (pathname === '/submit' && request.method === 'POST') {
+        const { token, name, phone, address, thesis } = await request.json();
+
+        if (!token || !name || !phone || !thesis)
+          return json({ error: 'Please fill in all required fields.' }, 400);
+
+        const parsed = parseToken(token);
+        if (!parsed) return json({ error: 'Invalid or expired link.' }, 400);
+
+        const { total, advance } = parsed;
+
+        const result = await airtable(env, 'Tickets', '', {
           method: 'POST',
           body: JSON.stringify({
             fields: {
-              'Total Amount': Number(total),
-              'Advance amount': Number(advance),
+              'Client Name':        name,
+              'Phone Number':       phone,
+              'Client Address':     address || '',
+              'Thesis details':     thesis,
+              'Total project value': total,
+              'Advance Expected':   advance,
+              'Order status':       'Intake',
             },
           }),
         });
 
-        // Return a short opaque link — no pricing visible in the URL
-        const token = makeToken(total, advance);
-        const link = `${WORKER_BASE}/f/${token}`;
-
-        return json({ link });
+        if (result.error) return json({ error: 'Could not save your request. Please try again.' }, 500);
+        return json({ success: true });
       }
 
-      // ── GET /f/:token (short link redirect) ──────────────────────────────────
-      // Client clicks this link → Worker decodes it → redirects to Airtable form
-      // Pricing never appears in any URL the client sees
-      if (pathname.startsWith('/f/')) {
-        const token = pathname.slice(3);
-        const parsed = parseToken(token);
-
-        if (!parsed) {
-          return new Response('Invalid or expired link.', { status: 400 });
-        }
-
-        const { total, advance } = parsed;
-        const destination =
-          `${FORM_BASE}` +
-          `?prefill_Total+project+value=${total}` +
-          `&hide_Total+project+value=true` +
-          `&prefill_Advance+Expected=${advance}` +
-          `&hide_Advance+Expected=true`;
-
-        return Response.redirect(destination, 302);
-      }
-
-      // ── GET /lookup?phone= ───────────────────────────────────────────────────
+      // ── GET /lookup?phone= ───────────────────────────────────────────────────────
       if (pathname === '/lookup' && request.method === 'GET') {
-        const rawPhone = searchParams.get('phone') || '';
-        const digits = digitsOnly(rawPhone);
-
-        if (digits.length < 6) {
-          return json({ error: 'Please enter a valid phone number' }, 400);
-        }
+        const digits = digitsOnly(searchParams.get('phone') || '');
+        if (digits.length < 6) return json({ error: 'Please enter a valid phone number' }, 400);
 
         const formula = encodeURIComponent(
           `SEARCH("${digits}",SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE({Phone Number},"(",""),")",""),"-","")," ",""),"+",""))`
         );
-
         const ticketResult = await airtable(env, 'Tickets', `?filterByFormula=${formula}`);
-
-        if (!ticketResult.records || ticketResult.records.length === 0) {
-          return json({ found: false });
-        }
+        if (!ticketResult.records?.length) return json({ found: false });
 
         const ticket = ticketResult.records[0];
         const f = ticket.fields;
@@ -149,25 +133,23 @@ export default {
 
         let payments = [];
         if (paymentLinks.length > 0) {
-          const orFormula = encodeURIComponent(
-            `OR(${paymentLinks.map(p => `RECORD_ID()='${p.id}'`).join(',')})`
-          );
+          const orFormula = encodeURIComponent(`OR(${paymentLinks.map(p => `RECORD_ID()='${p.id}'`).join(',')})`);
           const payResult = await airtable(env, 'Payments', `?filterByFormula=${orFormula}`);
           payments = (payResult.records || []).map(r => ({
             milestone: selectName(r.fields['Milestone Name']),
-            amount: r.fields['Amount Due'],
-            status: selectName(r.fields['Status']),
+            amount:    r.fields['Amount Due'],
+            status:    selectName(r.fields['Status']),
           }));
         }
 
         return json({
           found: true,
           ticket: {
-            id: f['Ticket  ID'],
-            clientName: f['Client Name'],
-            thesisDetails: f['Thesis details'],
-            orderStatus: selectName(f['Order status']),
-            totalPaid: f['Total Paid'] || 0,
+            id:               f['Ticket  ID'],
+            clientName:       f['Client Name'],
+            thesisDetails:    f['Thesis details'],
+            orderStatus:      selectName(f['Order status']),
+            totalPaid:        f['Total Paid'] || 0,
             remainingBalance: f['Remaining Balance'] || 0,
           },
           payments,
@@ -175,6 +157,7 @@ export default {
       }
 
       return new Response('Not found', { status: 404, headers: CORS });
+
     } catch (err) {
       return json({ error: 'Internal server error', detail: err.message }, 500);
     }

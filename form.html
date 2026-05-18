@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Get Started — Thesis Research</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f5f5f7;
+      --surface: #ffffff;
+      --border: #d2d2d7;
+      --text: #1d1d1f;
+      --text-2: #6e6e73;
+      --accent: #0071e3;
+      --accent-h: #0077ed;
+      --danger: #ff3b30;
+      --success: #34c759;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      -webkit-font-smoothing: antialiased;
+    }
+    .card {
+      background: var(--surface);
+      border-radius: 18px;
+      width: 100%;
+      max-width: 480px;
+      padding: 40px;
+      box-shadow: 0 2px 20px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+    .brand-icon {
+      width: 34px; height: 34px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .brand-name { font-size: 15px; font-weight: 600; }
+    h1 {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      line-height: 1.1;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      font-size: 15px;
+      color: var(--text-2);
+      line-height: 1.5;
+      margin-bottom: 32px;
+    }
+    .field { margin-bottom: 18px; }
+    label { display: block; font-size: 13px; font-weight: 500; color: var(--text-2); margin-bottom: 7px; }
+    .req { color: var(--danger); margin-left: 2px; }
+    input[type=text], input[type=tel], textarea {
+      width: 100%;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 16px;
+      padding: 13px 14px;
+      outline: none;
+      transition: border-color .15s, box-shadow .15s;
+      -webkit-appearance: none;
+      resize: none;
+    }
+    input:focus, textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(0,113,227,.12);
+      background: #fff;
+    }
+    textarea { min-height: 110px; line-height: 1.5; }
+    .error-msg { font-size: 12px; color: var(--danger); margin-top: 5px; display: none; }
+    .error-msg.show { display: block; }
+    .btn {
+      width: 100%;
+      margin-top: 8px;
+      padding: 14px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s, opacity .15s;
+    }
+    .btn:hover { background: var(--accent-h); }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+    .err-banner {
+      background: rgba(255,59,48,.06);
+      border: 1px solid rgba(255,59,48,.2);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 13px;
+      color: var(--danger);
+      margin-top: 12px;
+      display: none;
+    }
+    .err-banner.show { display: block; }
+    /* Success */
+    .success-state { display: none; text-align: center; padding: 12px 0; }
+    .success-state.show { display: block; }
+    .success-ring {
+      width: 68px; height: 68px;
+      background: rgba(52,199,89,.1);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 22px;
+      font-size: 30px;
+    }
+    .success-title { font-size: 24px; font-weight: 700; letter-spacing: -0.4px; margin-bottom: 10px; }
+    .success-sub { font-size: 15px; color: var(--text-2); line-height: 1.6; }
+    /* Invalid */
+    .invalid-state { display: none; text-align: center; padding: 12px 0; }
+    .invalid-state.show { display: block; }
+    .footer { margin-top: 28px; text-align: center; font-size: 11px; color: var(--text-2); }
+  </style>
+</head>
+<body>
+  <script>const WORKER_URL = 'https://thesis-crm-worker.srijancrm.workers.dev';</script>
+  <div class="card">
+    <div class="brand">
+      <div class="brand-icon">T</div>
+      <div class="brand-name">Thesis Research</div>
+    </div>
+    <!-- Invalid link -->
+    <div class="invalid-state" id="invalid-state">
+      <div style="font-size:44px;margin-bottom:16px">🔗</div>
+      <h1 style="font-size:22px;margin-bottom:8px">Link Invalid</h1>
+      <p style="font-size:15px;color:var(--text-2);line-height:1.5">This link is invalid or has expired.<br>Please contact us to receive a new one.</p>
+    </div>
+    <!-- Form -->
+    <div id="form-state">
+      <h1>Get Started</h1>
+      <p class="subtitle">Fill in your details below and we’ll be in touch shortly.</p>
+      <div class="field">
+        <label>Full Name <span class="req">*</span></label>
+        <input type="text" id="name" placeholder="Your full name" autocomplete="name" />
+        <div class="error-msg" id="name-err">Please enter your full name.</div>
+      </div>
+      <div class="field">
+        <label>Phone Number <span class="req">*</span></label>
+        <input type="tel" id="phone" placeholder="Your phone number" autocomplete="tel" />
+        <div class="error-msg" id="phone-err">Please enter a valid phone number.</div>
+      </div>
+      <div class="field">
+        <label>City / Address</label>
+        <input type="text" id="address" placeholder="Your city or address" autocomplete="address-level2" />
+      </div>
+      <div class="field">
+        <label>About Your Thesis <span class="req">*</span></label>
+        <textarea id="thesis" placeholder="Describe your thesis topic, subject area, and any specific requirements…"></textarea>
+        <div class="error-msg" id="thesis-err">Please describe your thesis.</div>
+      </div>
+      <button class="btn" id="submit-btn" onclick="submitForm()">Submit Request</button>
+      <div class="err-banner" id="err-banner"></div>
+    </div>
+    <!-- Success -->
+    <div class="success-state" id="success-state">
+      <div class="success-ring">✓</div>
+      <div class="success-title">Request Submitted</div>
+      <p class="success-sub">Thank you! We’ve received your details and will reach out to you shortly.</p>
+    </div>
+    <div class="footer">Thesis Research · Your information is kept secure</div>
+  </div>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    if (!token) {
+      document.getElementById('form-state').style.display = 'none';
+      document.getElementById('invalid-state').classList.add('show');
+    }
+    async function submitForm() {
+      const name    = document.getElementById('name').value.trim();
+      const phone   = document.getElementById('phone').value.trim();
+      const address = document.getElementById('address').value.trim();
+      const thesis  = document.getElementById('thesis').value.trim();
+      ['name','phone','thesis'].forEach(f => document.getElementById(`${f}-err`).classList.remove('show'));
+      const banner = document.getElementById('err-banner');
+      banner.textContent = ''; banner.classList.remove('show');
+      let valid = true;
+      if (!name)              { document.getElementById('name-err').classList.add('show');   valid = false; }
+      if (phone.replace(/\D/g,'').length < 6) { document.getElementById('phone-err').classList.add('show');  valid = false; }
+      if (!thesis)            { document.getElementById('thesis-err').classList.add('show'); valid = false; }
+      if (!valid) return;
+      const btn = document.getElementById('submit-btn');
+      btn.disabled = true; btn.textContent = 'Submitting…';
+      try {
+        const res = await fetch(`${WORKER_URL}/submit`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token, name, phone, address, thesis }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Submission failed. Please try again.');
+        document.getElementById('form-state').style.display = 'none';
+        document.getElementById('success-state').classList.add('show');
+      } catch(err) {
+        banner.textContent = err.message;
+        banner.classList.add('show');
+        btn.disabled = false; btn.textContent = 'Submit Request';
+      }
+    }
+  </script>
+</body>
+</html>
