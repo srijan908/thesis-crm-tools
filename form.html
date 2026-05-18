@@ -120,7 +120,8 @@
       display: none;
     }
     .err-banner.show { display: block; }
-    /* Success */
+
+    /* ── Success ── */
     .success-state { display: none; text-align: center; padding: 12px 0; }
     .success-state.show { display: block; }
     .success-ring {
@@ -134,8 +135,64 @@
       font-size: 30px;
     }
     .success-title { font-size: 24px; font-weight: 700; letter-spacing: -0.4px; margin-bottom: 10px; }
-    .success-sub { font-size: 15px; color: var(--text-2); line-height: 1.6; }
-    /* Invalid */
+    .success-sub { font-size: 15px; color: var(--text-2); line-height: 1.6; margin-bottom: 28px; }
+
+    /* Tracker link box */
+    .tracker-box {
+      background: #f0f7ff;
+      border: 1.5px solid #b8d9f8;
+      border-radius: 12px;
+      padding: 18px;
+      text-align: left;
+    }
+    .tracker-box-label {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+    .tracker-box-desc {
+      font-size: 13px;
+      color: var(--text-2);
+      line-height: 1.5;
+      margin-bottom: 14px;
+    }
+    .tracker-link-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .tracker-link-text {
+      flex: 1;
+      font-size: 12px;
+      font-family: 'SF Mono', 'Menlo', monospace;
+      color: var(--text-2);
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      word-break: break-all;
+      line-height: 1.4;
+    }
+    .copy-btn {
+      flex-shrink: 0;
+      padding: 8px 14px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity .15s;
+      white-space: nowrap;
+    }
+    .copy-btn:hover { opacity: .85; }
+
+    /* ── Invalid ── */
     .invalid-state { display: none; text-align: center; padding: 12px 0; }
     .invalid-state.show { display: block; }
     .footer { margin-top: 28px; text-align: center; font-size: 11px; color: var(--text-2); }
@@ -148,16 +205,18 @@
       <div class="brand-icon">T</div>
       <div class="brand-name">Thesis Research</div>
     </div>
+
     <!-- Invalid link -->
     <div class="invalid-state" id="invalid-state">
       <div style="font-size:44px;margin-bottom:16px">🔗</div>
       <h1 style="font-size:22px;margin-bottom:8px">Link Invalid</h1>
       <p style="font-size:15px;color:var(--text-2);line-height:1.5">This link is invalid or has expired.<br>Please contact us to receive a new one.</p>
     </div>
+
     <!-- Form -->
     <div id="form-state">
       <h1>Get Started</h1>
-      <p class="subtitle">Fill in your details below and we’ll be in touch shortly.</p>
+      <p class="subtitle">Fill in your details below and we'll be in touch shortly.</p>
       <div class="field">
         <label>Full Name <span class="req">*</span></label>
         <input type="text" id="name" placeholder="Your full name" autocomplete="name" />
@@ -180,44 +239,65 @@
       <button class="btn" id="submit-btn" onclick="submitForm()">Submit Request</button>
       <div class="err-banner" id="err-banner"></div>
     </div>
+
     <!-- Success -->
     <div class="success-state" id="success-state">
       <div class="success-ring">✓</div>
-      <div class="success-title">Request Submitted</div>
-      <p class="success-sub">Thank you! We’ve received your details and will reach out to you shortly.</p>
+      <div class="success-title">Request Submitted!</div>
+      <p class="success-sub">Thank you! We've received your details and will reach out to you shortly.</p>
+      <div class="tracker-box">
+        <div class="tracker-box-label">Your Order Tracker</div>
+        <div class="tracker-box-desc">Bookmark this link to check your order status and payment updates at any time.</div>
+        <div class="tracker-link-row">
+          <div class="tracker-link-text" id="tracker-link-text">—</div>
+          <button class="copy-btn" onclick="copyLink()">Copy</button>
+        </div>
+      </div>
     </div>
+
     <div class="footer">Thesis Research · Your information is kept secure</div>
   </div>
+
   <script>
     const params = new URLSearchParams(window.location.search);
-    const token = params.get('token');
+    const token  = params.get('token');
+    let trackerLink = '';
+
     if (!token) {
       document.getElementById('form-state').style.display = 'none';
       document.getElementById('invalid-state').classList.add('show');
     }
+
     async function submitForm() {
       const name    = document.getElementById('name').value.trim();
       const phone   = document.getElementById('phone').value.trim();
       const address = document.getElementById('address').value.trim();
       const thesis  = document.getElementById('thesis').value.trim();
+
       ['name','phone','thesis'].forEach(f => document.getElementById(`${f}-err`).classList.remove('show'));
       const banner = document.getElementById('err-banner');
       banner.textContent = ''; banner.classList.remove('show');
+
       let valid = true;
-      if (!name)              { document.getElementById('name-err').classList.add('show');   valid = false; }
+      if (!name)                              { document.getElementById('name-err').classList.add('show');   valid = false; }
       if (phone.replace(/\D/g,'').length < 6) { document.getElementById('phone-err').classList.add('show');  valid = false; }
-      if (!thesis)            { document.getElementById('thesis-err').classList.add('show'); valid = false; }
+      if (!thesis)                            { document.getElementById('thesis-err').classList.add('show'); valid = false; }
       if (!valid) return;
+
       const btn = document.getElementById('submit-btn');
       btn.disabled = true; btn.textContent = 'Submitting…';
+
       try {
-        const res = await fetch(`${WORKER_URL}/submit`, {
+        const res  = await fetch(`${WORKER_URL}/submit`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ token, name, phone, address, thesis }),
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Submission failed. Please try again.');
+
+        trackerLink = data.trackerLink || '';
+        document.getElementById('tracker-link-text').textContent = trackerLink;
         document.getElementById('form-state').style.display = 'none';
         document.getElementById('success-state').classList.add('show');
       } catch(err) {
@@ -225,6 +305,15 @@
         banner.classList.add('show');
         btn.disabled = false; btn.textContent = 'Submit Request';
       }
+    }
+
+    function copyLink() {
+      if (!trackerLink) return;
+      navigator.clipboard.writeText(trackerLink).then(() => {
+        const btn = document.querySelector('.copy-btn');
+        btn.textContent = 'Copied!';
+        setTimeout(() => btn.textContent = 'Copy', 2000);
+      });
     }
   </script>
 </body>
