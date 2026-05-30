@@ -15,7 +15,7 @@
 const BASE_ID      = 'appXfVVzb9jzX3jmx';
 const WORKER_BASE  = 'https://thesis-crm-worker.srijancrm.workers.dev';
 const PAGES_BASE   = 'https://srijan908.github.io/thesis-crm-tools';
-const VALID_STAGES = ['Intake', 'In Progress', 'Review', 'Revision', 'Delivered', 'Closed'];
+const VALID_STAGES = ['Intake', 'Introduction and Literature Review', 'Data Analysis and Results', 'Discussion Conclusion Summary', 'Revision', 'Delivered', 'Closed'];
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
