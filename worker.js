@@ -182,6 +182,18 @@ export default {
         if (result.error) return json({ error: 'Could not save your request. Please try again.' }, 500);
 
         const trackerToken = makeTicketToken(result.id);
+
+        // Write the internal team link back onto the ticket so the admin can reach it
+        // from the Airtable Interface (non-blocking; ticket creation already succeeded).
+        try {
+          await airtable(env, 'Tickets', `/${result.id}`, {
+            method: 'PATCH',
+            body: JSON.stringify({
+              fields: { 'Team Link': `${PAGES_BASE}/internal.html?token=${trackerToken}` },
+            }),
+          });
+        } catch (e) { /* link write is best-effort; don't fail the submission */ }
+
         return json({
           success:     true,
           trackerLink: `${PAGES_BASE}/tracker.html?token=${trackerToken}`,
